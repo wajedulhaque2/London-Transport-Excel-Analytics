@@ -2,7 +2,7 @@
 
 An Excel analytics project exploring London transport demand, station usage, passenger flows and London Underground operational performance using Transport for London data.
 
-![London Transport dashboard](assets/hero_dashboard.png)
+![Executive Dashboard](assets/executive_dashboard.jpg)
 
 ## Project goal
 
@@ -23,7 +23,29 @@ The workbook answers five practical questions:
 - **The weekday profile is strongly directional.** Across the modelled daily data, Thursday has the highest Tube average and Friday the highest Bus average; Sunday is the lowest-demand day for both modes.
 - **The 2026 YTD cached station ranking is led by King's Cross St Pancras** at roughly **175.9k average daily footfall**, followed by Victoria and London Bridge.
 - **The cached 2025-26 Underground service view shows meaningful line variation.** Overall service delivery is about **90.2%** in that view, with Waterloo & City and Northern at the top of the ranking and Bakerloo at the bottom.
-- **NUMBAT highlights the Elizabeth line corridor around Whitechapel as a high-intensity link.** In the all-day cached ranking, Canary Wharf EL -> Whitechapel is around **531 passengers per scheduled train**. This is a demand-intensity metric, not a capacity-utilisation percentage.
+- **NUMBAT highlights the Elizabeth line corridor around Whitechapel as a high-intensity link.** In the all-day cached ranking, Canary Wharf EL → Whitechapel is around **531 passengers per scheduled train**. This is a demand-intensity metric, not a capacity-utilisation percentage.
+
+## Dashboard walkthrough
+
+### Network Trends
+Shows the recovery path for Tube and Bus demand, alongside weekday and annual comparisons.
+
+![Network Trends](assets/network_trends.jpg)
+
+### Station Explorer
+Provides station-level KPIs, monthly footfall, weekday profiles, entry/exit comparisons and interactive slicers.
+
+![Station Explorer](assets/station_explorer.jpg)
+
+### Line Performance
+Compares actual versus scheduled Underground service delivery by reporting period and line, including peak and off-peak performance.
+
+![Line Performance](assets/line_performance.jpg)
+
+### Peak Flow Analysis
+Uses NUMBAT 2024 TWT data to examine quarter-hour station flows, platform movements and high-intensity links.
+
+![Peak Flow Analysis](assets/peak_flow_analysis.jpg)
 
 ## Data sources
 
@@ -95,12 +117,12 @@ See [Workbook Architecture](docs/WORKBOOK_ARCHITECTURE.md) for the model map.
 
 ## Files in this repository
 
-- [`workbook/London_Transport_Demand_Analytics_Portfolio.xlsx`](workbook/London_Transport_Demand_Analytics_Portfolio.xlsx) - clean cached workbook for reviewers
-- [`docs/London_Transport_Project_Summary.pdf`](docs/London_Transport_Project_Summary.pdf) - 3-page project summary
-- [`docs/FORMULA_GUIDE.md`](docs/FORMULA_GUIDE.md) - important Excel, DAX and Power Query logic
-- [`assets/hero_dashboard.png`](assets/hero_dashboard.png) - repository hero image
-- [`assets/demo.gif`](assets/demo.gif) - short guided project demo
-- [`docs/DEMO_SCRIPT.md`](docs/DEMO_SCRIPT.md) - 30-60 second recording script for a true Excel screen capture
+- [`workbook/London_Transport_Demand_Analytics_Portfolio.xlsx`](workbook/London_Transport_Demand_Analytics_Portfolio.xlsx) — clean cached workbook for reviewers
+- [`docs/London_Transport_Project_Summary.pdf`](docs/London_Transport_Project_Summary.pdf) — 3-page project summary
+- [`docs/FORMULA_GUIDE.md`](docs/FORMULA_GUIDE.md) — important Excel, DAX and Power Query logic
+- [`docs/WORKBOOK_ARCHITECTURE.md`](docs/WORKBOOK_ARCHITECTURE.md) — workbook and model structure
+- [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) — source register and coverage notes
+- [`assets/`](assets/) — screenshots of the finished workbook dashboards
 
 ## Data quality and limitations
 
