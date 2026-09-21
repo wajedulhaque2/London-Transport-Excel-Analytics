@@ -18,7 +18,7 @@ st.markdown(APP_CSS, unsafe_allow_html=True)
 data = load_snapshot()
 
 st.sidebar.title("London transport")
-st.sidebar.caption("Cached portfolio dashboard")
+st.sidebar.caption("Source-backed interactive dashboard")
 page = st.sidebar.radio(
     "View",
     [

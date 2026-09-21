@@ -1,6 +1,6 @@
 # Live dashboard
 
-This Streamlit application turns the cached Excel portfolio into a shareable web dashboard while leaving the workbook unchanged.
+This Streamlit application turns the supplied TfL source pack into a shareable, fully interactive web dashboard while leaving the Excel portfolio unchanged.
 
 ## Run locally
 
@@ -17,32 +17,36 @@ On Windows PowerShell, activate the environment with `.venv\Scripts\Activate.ps1
 
 ## Data architecture
 
-The application reads small, versioned CSV snapshots in `dashboard/data/cached/`. These were extracted from the workbook's cached Pivot Support outputs, not reconstructed from invented rows.
+The app reads compact, versioned source-backed datasets in `dashboard/data/processed/`. They were generated from:
 
-The original TfL source pack is not stored in this repository. As a result:
+- daily Tube and bus journey files covering 2019 through 8 August 2026;
+- daily station entries and exits covering 2019 through 4 July 2026;
+- Underground kilometres operated by financial year, reporting period, and line;
+- complete NUMBAT 2024 TWT station, platform, link-load, and service-frequency outputs.
 
-- Network monthly and annual comparisons are available through August 2026.
-- The detailed Station Explorer view is limited to the workbook's cached Langdon Park / 2026 / Weekday context. Other cached leading stations expose ranking and average daily footfall only.
-- Line Performance uses the workbook's cached multi-financial-year selection.
-- NUMBAT quarter-hour output is limited to the cached Evening slice.
+The processed station table retains station, month, day type, and day-of-week grain. The NUMBAT datasets retain all 96 quarter-hour intervals. This keeps the deployed app responsive without limiting its filters to cached PivotTable selections.
 
-Unavailable detail is shown explicitly in the app. Missing observations are not converted to zero.
+## Rebuild the processed datasets
 
-## Rebuild the snapshots
-
-The source workbook remains at `workbook/London_Transport_Demand_Analytics_Portfolio.xlsx`. To rebuild the web snapshots after updating its cached pivots:
+Place the original TfL files in one folder, then run:
 
 ```bash
-python dashboard/scripts/extract_cached_snapshot.py
+python dashboard/scripts/build_raw_snapshot.py /path/to/source-folder
 ```
 
-The extractor opens the workbook read-only and writes CSV/JSON outputs under `dashboard/data/cached/`.
+The command validates the expected source families and rewrites `dashboard/data/processed/`. The source files themselves are not required by the deployed app.
+
+## Interpretation
+
+- Calendar-year passenger demand remains separate from financial-year service performance.
+- Journey and station sources show their own latest dates.
+- Kilometres-operated periods 6 and 8 of 2024-25 are partial; period 7 is unavailable after the TfL cyber incident.
+- NUMBAT represents a typical autumn Tuesday/Wednesday/Thursday profile, not an annual total.
+- Passengers per scheduled train is demand intensity, not train occupancy, crowding, or capacity utilisation.
 
 ## Deploy with Streamlit Community Cloud
 
-1. Push this branch to GitHub.
-2. In Streamlit Community Cloud, create an app from this repository.
-3. Choose `dashboard/app.py` as the entrypoint.
-4. Deploy. No secrets are required for the cached version.
-
-The later refresh upgrade should replace the cached snapshots with a controlled TfL ingestion pipeline. Keep calendar-year demand filters separate from TfL financial-year service filters.
+1. Push the updated branch to GitHub and merge its pull request.
+2. In Streamlit Community Cloud, create or reboot the app from this repository.
+3. Use `dashboard/app.py` as the entrypoint.
+4. No secrets are required.

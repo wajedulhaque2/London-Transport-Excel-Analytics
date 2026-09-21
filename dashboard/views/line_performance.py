@@ -4,110 +4,68 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from chart_utils import BLUE, GREEN, RED, horizontal_bar, line_chart, style_figure
-from metrics import compact_number, percent
+from metrics import compact_number, percent, safe_divide, service_summary
+
+
+def _by_line(frame):
+    rows = []
+    for line, group in frame.groupby("line", observed=True):
+        rows.append({"line": line, **service_summary(group)})
+    return __import__("pandas").DataFrame(rows).sort_values("service_delivery", ascending=False).reset_index(drop=True)
+
+
+def _by_period(frame):
+    rows = []
+    for period, group in frame.groupby("period", observed=True):
+        rows.append({"reporting_period": int(period), **service_summary(group)})
+    return __import__("pandas").DataFrame(rows).sort_values("reporting_period")
 
 
 def render(data: dict[str, object]) -> None:
-    service = data["service_by_line"].sort_values("service_delivery", ascending=False)
-    peak = data["service_peak_offpeak_by_line"]
-    period = data["service_reporting_period"]
-    metadata = data["metadata"]
+    source = data["service_records"]
+    years = sorted(source["financial_year"].unique().tolist(), reverse=True)
+    financial_year = st.sidebar.selectbox("Financial year", years, key="service_year")
+    fy = source.loc[source["financial_year"] == financial_year]
+    line_options = ["All lines"] + sorted(fy["line"].unique().tolist())
+    selected_line = st.sidebar.selectbox("Underground line", line_options, key="service_line")
+    selected = fy if selected_line == "All lines" else fy.loc[fy["line"] == selected_line]
 
-    options = ["All lines"] + service["line"].tolist()
-    selected_line = st.sidebar.selectbox("Underground line", options, key="service_line")
-    st.sidebar.selectbox(
-        "Financial year context",
-        [metadata["service_detail_context"]],
-        disabled=True,
-        key="service_year",
-    )
+    summary = service_summary(selected)
+    lines = _by_line(fy)
+    periods = _by_period(selected)
+    rank = "—" if selected_line == "All lines" else int(lines.index[lines["line"] == selected_line][0]) + 1
 
     st.title("Underground line performance")
-    st.caption("Actual versus scheduled service, reporting-period trends and line comparisons")
+    st.caption("Actual versus scheduled kilometres by financial year, reporting period, and line")
     st.markdown(
-        f'<div class="scope-note">{metadata["service_detail_context"]}. '
-        'Calendar-year demand filters are deliberately separate from this view.</div>',
+        f'<div class="scope-note">Financial year <b>{financial_year}</b> · <b>{selected_line}</b>. '
+        'This TfL financial-year view remains separate from calendar-year passenger demand.</div>',
         unsafe_allow_html=True,
     )
-
-    overall = metadata["kpis"]["service_detail"]
-    if selected_line == "All lines":
-        service_delivery = overall["Service Delivery %"]
-        peak_delivery = overall["Peak Delivery %"]
-        off_peak_delivery = overall["Off-Peak Delivery %"]
-        rank = "—"
-        undelivered = compact_number(overall["Undelivered KM"])
-    else:
-        service_row = service.loc[service["line"] == selected_line].iloc[0]
-        peak_row = peak.loc[peak["line"] == selected_line].iloc[0]
-        service_delivery = service_row["service_delivery"]
-        peak_delivery = peak_row["peak_delivery"]
-        off_peak_delivery = peak_row["off_peak_delivery"]
-        rank = int(service.reset_index(drop=True).index[service.reset_index(drop=True)["line"] == selected_line][0]) + 1
-        undelivered = "Not in cache"
 
     cols = st.columns(5)
-    cols[0].metric("Service delivery", percent(service_delivery))
-    cols[1].metric("Peak delivery", percent(peak_delivery))
-    cols[2].metric("Off-peak delivery", percent(off_peak_delivery))
-    cols[3].metric("Undelivered km", undelivered)
+    cols[0].metric("Service delivery", percent(summary["service_delivery"]))
+    cols[1].metric("Peak delivery", percent(summary["peak_delivery"]))
+    cols[2].metric("Off-peak delivery", percent(summary["off_peak_delivery"]))
+    cols[3].metric("Undelivered km", compact_number(summary["scheduled_total_km"] - summary["actual_total_km"]))
     cols[4].metric("Line service rank", rank)
+    totals = st.columns(2)
+    totals[0].metric("Actual kilometres", compact_number(summary["actual_total_km"]))
+    totals[1].metric("Scheduled kilometres", compact_number(summary["scheduled_total_km"]))
 
-    st.markdown(
-        '<div class="warning-note">Actual and scheduled kilometre totals are not exposed in the '
-        'cached Pivot Support output. The app preserves the documented delivery rates and marks those totals unavailable '
-        'until the source data is added.</div>',
-        unsafe_allow_html=True,
-    )
-
-    st.plotly_chart(
-        line_chart(
-            period,
-            "reporting_period",
-            {
-                "service_delivery": "Service delivery",
-                "peak_delivery": "Peak delivery",
-                "off_peak_delivery": "Off-peak delivery",
-            },
-            "Service delivery by reporting period",
-            percent_axis=True,
-            height=430,
-        ),
-        width="stretch",
-        config={"displayModeBar": False},
-    )
-    st.caption("Reporting-period trend is the aggregate cached selection and does not change with the line selector.")
-
+    st.plotly_chart(line_chart(periods, "reporting_period", {"service_delivery": "Service delivery", "peak_delivery": "Peak delivery", "off_peak_delivery": "Off-peak delivery"}, f"Service delivery by reporting period — {selected_line}", percent_axis=True, height=430), width="stretch", config={"displayModeBar": False})
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(
-            horizontal_bar(
-                service,
-                "service_delivery",
-                "line",
-                "Service delivery by Underground line",
-                color=BLUE,
-                percent_axis=True,
-            ),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
+        st.plotly_chart(horizontal_bar(lines, "service_delivery", "line", f"Service delivery by line — {financial_year}", color=BLUE, percent_axis=True), width="stretch", config={"displayModeBar": False})
     with right:
         fig = go.Figure()
-        fig.add_bar(x=peak["line"], y=peak["peak_delivery"], name="Peak", marker_color=RED)
-        fig.add_bar(x=peak["line"], y=peak["off_peak_delivery"], name="Off-peak", marker_color=GREEN)
+        fig.add_bar(x=lines["line"], y=lines["peak_delivery"], name="Peak", marker_color=RED)
+        fig.add_bar(x=lines["line"], y=lines["off_peak_delivery"], name="Off-peak", marker_color=GREEN)
         fig.update_layout(title="Peak versus off-peak delivery", barmode="group")
         fig.update_yaxes(tickformat=".0%")
         st.plotly_chart(style_figure(fig), width="stretch", config={"displayModeBar": False})
 
-    st.markdown(
-        '<div class="warning-note"><b>Known source limitation:</b> 2024/25 P6 and P8 are partial. '
-        'P7 is unavailable following the TfL cyber incident.</div>',
-        unsafe_allow_html=True,
-    )
-    with st.expander("View cached line performance data"):
-        st.dataframe(
-            service.merge(peak, on="line", how="left"),
-            width="stretch",
-            hide_index=True,
-        )
+    if financial_year == "2024-25":
+        st.warning("TfL identifies periods 6 and 8 as partial and period 7 as unavailable following the September 2024 cyber incident.")
+    with st.expander("View line performance data"):
+        st.dataframe(lines, width="stretch", hide_index=True)

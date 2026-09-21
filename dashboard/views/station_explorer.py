@@ -3,103 +3,59 @@ from __future__ import annotations
 import plotly.graph_objects as go
 import streamlit as st
 
-from chart_utils import BLUE, RED, horizontal_bar, line_chart, style_figure
-from metrics import compact_number, percent, ranked_station
-
-
-DETAIL_STATION = "Langdon Park"
+from chart_utils import BLUE, horizontal_bar, line_chart, style_figure
+from metrics import compact_number, percent, safe_divide, station_monthly, station_ranking, station_weekday
 
 
 def render(data: dict[str, object]) -> None:
-    top = data["top_stations"].sort_values("average_daily_footfall", ascending=False)
+    source = data["station_period"]
     metadata = data["metadata"]
-    detail = metadata["kpis"]["station_detail"]
-    options = [DETAIL_STATION] + [name for name in top["station"].tolist() if name != DETAIL_STATION]
-    station = st.sidebar.selectbox("Station", options, key="station_name")
-    if station == DETAIL_STATION:
-        st.sidebar.selectbox("Calendar year", [2026], disabled=True, key="station_year")
-        st.sidebar.selectbox("Day type", ["Weekday"], disabled=True, key="station_day_type")
-    else:
-        st.sidebar.selectbox("Ranking period", ["2026 YTD (cached)"], disabled=True, key="station_rank_period")
+    years = sorted(source["year"].unique().tolist(), reverse=True)
+    year = st.sidebar.selectbox("Calendar year", years, key="station_year")
+    day_type = st.sidebar.selectbox("Day type", ["All days", "Weekday", "Weekend"], key="station_day_type")
+    available = sorted(source.loc[source["year"] == year, "station"].unique().tolist())
+    default_station = "Kings Cross St Pancras" if "Kings Cross St Pancras" in available else available[0]
+    station = st.sidebar.selectbox("Station", available, index=available.index(default_station), key="station_name")
+
+    ranking = station_ranking(source, year, day_type)
+    row = ranking.loc[ranking["station"] == station].iloc[0]
+    monthly = station_monthly(source, station, year, day_type)
+    weekday = station_weekday(source, station, year)
+    baseline = station_ranking(source, 2019, day_type)
+    baseline_row = baseline.loc[baseline["station"] == station]
+    recovery = safe_divide(row["average_daily_footfall"], baseline_row.iloc[0]["average_daily_footfall"]) if not baseline_row.empty else float("nan")
+    weekday_value = station_ranking(source, year, "Weekday").set_index("station")["average_daily_footfall"].get(station)
+    weekend_value = station_ranking(source, year, "Weekend").set_index("station")["average_daily_footfall"].get(station)
 
     st.title("Station explorer")
-    st.caption("Station demand, directionality and weekday behaviour")
-
-    if station == DETAIL_STATION:
-        context = metadata["station_detail_context"]
-        st.markdown(
-            f'<div class="scope-note">Detailed cached context: <b>{context["station"]}</b>, '
-            f'{context["calendar_year"]}, {context["day_type"]}. Missing station-day rows remain missing.</div>',
-            unsafe_allow_html=True,
-        )
-        cols = st.columns(5)
-        cols[0].metric("Average daily footfall", compact_number(detail["Average Daily Footfall"]))
-        cols[1].metric("Average daily entries", compact_number(detail["Average Daily Entries"]))
-        cols[2].metric("Average daily exits", compact_number(detail["Average Daily Exits"]))
-        cols[3].metric("Network rank", f"{int(detail['Station Rank']):,}")
-        cols[4].metric("Demand vs 2019", percent(detail["Demand vs 2019 %"]))
-
-        secondary = st.columns(2)
-        secondary[0].metric("Directionality index", percent(detail["Directionality Index"]))
-        secondary[1].metric("Weekday / weekend ratio", f"{detail['Weekday Weekend Ratio']:.2f}x")
-
-        left, right = st.columns(2)
-        with left:
-            st.plotly_chart(
-                line_chart(
-                    data["station_monthly_detail"],
-                    "month",
-                    {"average_daily_footfall": "Average daily footfall"},
-                    "Monthly average daily footfall",
-                ),
-                width="stretch",
-                config={"displayModeBar": False},
-            )
-        with right:
-            weekday = data["station_weekday_detail"]
-            fig = go.Figure(
-                go.Bar(
-                    x=weekday["day_of_week"],
-                    y=weekday["average_daily_footfall"],
-                    marker_color=BLUE,
-                )
-            )
-            fig.update_layout(title="Demand by day of week")
-            st.plotly_chart(style_figure(fig), width="stretch", config={"displayModeBar": False})
-
-        entries = data["station_entries_exits_detail"]
-        st.plotly_chart(
-            line_chart(
-                entries,
-                "month",
-                {
-                    "average_daily_entries": "Entries",
-                    "average_daily_exits": "Exits",
-                },
-                "Entries versus exits",
-            ),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
-        st.caption(
-            "Directionality Index = ABS(entries − exits) / total footfall. Values nearer zero indicate more balanced flows."
-        )
-    else:
-        selected = ranked_station(top, station)
-        st.markdown(
-            '<div class="warning-note">The cached workbook contains ranking output for this station, '
-            'but not its monthly or day-level rows. Those views are intentionally unavailable until the source pack is added.</div>',
-            unsafe_allow_html=True,
-        )
-        cols = st.columns(3)
-        cols[0].metric("Station", station)
-        cols[1].metric("Average daily footfall", compact_number(selected["average_daily_footfall"]))
-        cols[2].metric("Rank within cached top 10", f"{selected['rank']}")
-
-    st.plotly_chart(
-        horizontal_bar(top, "average_daily_footfall", "station", "Cached 2026 leading-station ranking", color=BLUE),
-        width="stretch",
-        config={"displayModeBar": False},
+    st.caption("Station demand, directionality, monthly patterns, and weekday behaviour")
+    st.markdown(
+        f'<div class="scope-note"><b>{station}</b> · {year} · {day_type} · '
+        f'{int(row["active_dates"]):,} observed station-days. Missing station-days remain missing.</div>',
+        unsafe_allow_html=True,
     )
-    with st.expander("View cached station ranking data"):
-        st.dataframe(top, width="stretch", hide_index=True)
+    if year == max(years):
+        st.info(f"{year} station data is year-to-date through {metadata['station_data_through']}.")
+
+    cols = st.columns(5)
+    cols[0].metric("Average daily footfall", compact_number(row["average_daily_footfall"]))
+    cols[1].metric("Average daily entries", compact_number(row["average_daily_entries"]))
+    cols[2].metric("Average daily exits", compact_number(row["average_daily_exits"]))
+    cols[3].metric("Network rank", f"{int(row.name) + 1:,} of {len(ranking):,}")
+    cols[4].metric("Demand vs 2019", percent(recovery))
+    secondary = st.columns(2)
+    secondary[0].metric("Directionality index", percent(row["directionality_index"]))
+    secondary[1].metric("Weekday / weekend ratio", f"{safe_divide(weekday_value, weekend_value):.2f}x")
+
+    left, right = st.columns(2)
+    with left:
+        st.plotly_chart(line_chart(monthly, "month", {"average_daily_footfall": "Average daily footfall"}, "Monthly average daily footfall"), width="stretch", config={"displayModeBar": False})
+    with right:
+        fig = go.Figure(go.Bar(x=weekday["day_of_week"], y=weekday["average_daily_footfall"], marker_color=BLUE))
+        fig.update_layout(title="Demand by day of week")
+        st.plotly_chart(style_figure(fig), width="stretch", config={"displayModeBar": False})
+
+    st.plotly_chart(line_chart(monthly, "month", {"average_daily_entries": "Entries", "average_daily_exits": "Exits"}, "Average daily entries versus exits"), width="stretch", config={"displayModeBar": False})
+    st.plotly_chart(horizontal_bar(ranking.head(15), "average_daily_footfall", "station", f"Leading stations — {year}, {day_type}", color=BLUE, height=500), width="stretch", config={"displayModeBar": False})
+    with st.expander("View station ranking data"):
+        st.dataframe(ranking[["station", "average_daily_footfall", "average_daily_entries", "average_daily_exits", "active_dates"]], width="stretch", hide_index=True)
