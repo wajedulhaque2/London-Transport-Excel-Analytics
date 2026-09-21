@@ -8,9 +8,13 @@ from metrics import compact_number, network_monthly, network_summary, service_su
 
 
 def _link_intensity(frame):
-    loads = frame.loc[frame["metric_type"] == "Passenger load", ["link", "line", "Total"]].rename(columns={"Total": "passenger_load"})
+    loads = frame.loc[
+        frame["metric_type"] == "Passenger load",
+        ["link", "line", "from_station", "to_station", "Total"],
+    ].rename(columns={"Total": "passenger_load"})
     trains = frame.loc[frame["metric_type"] == "Scheduled trains", ["link", "line", "Total"]].rename(columns={"Total": "scheduled_trains"})
     result = loads.merge(trains, on=["link", "line"], how="inner")
+    result["link_label"] = result["from_station"] + " → " + result["to_station"]
     result["passengers_per_scheduled_train"] = result["passenger_load"] / result["scheduled_trains"].replace(0, float("nan"))
     return result.sort_values("passengers_per_scheduled_train", ascending=False)
 
@@ -60,8 +64,8 @@ def render(data: dict[str, object]) -> None:
     with left:
         st.plotly_chart(horizontal_bar(service_lines, "service_delivery", "line", f"Underground service delivery — {service_year}", color=BLUE, percent_axis=True), width="stretch", config={"displayModeBar": False})
     with right:
-        fig = go.Figure(go.Bar(x=intensity["passengers_per_scheduled_train"], y=intensity["link"], orientation="h", marker_color=RED, hovertemplate="%{y}<br>%{x:,.1f} passengers per scheduled train<extra></extra>"))
-        fig.update_layout(title="Highest all-day demand per scheduled train")
+        fig = go.Figure(go.Bar(x=intensity["passengers_per_scheduled_train"], y=intensity["link_label"], orientation="h", marker_color=RED, hovertemplate="%{y}<br>%{x:,.1f} passengers per scheduled train<extra></extra>"))
+        fig.update_layout(title="Highest all-day demand per scheduled train", xaxis_title="Passengers per scheduled train", yaxis_title=None)
         st.plotly_chart(style_figure(fig), width="stretch", config={"displayModeBar": False})
         st.caption("Demand intensity only; train capacity is not part of this measure.")
 
