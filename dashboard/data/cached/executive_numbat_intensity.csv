@@ -1,0 +1,11 @@
+link,passengers_per_scheduled_train
+Stratford → Maryland,503.45314951707206
+Maryland → Stratford,509.5582748369233
+Liverpool Street LU → Whitechapel,517.1167293151774
+Liverpool Street LU → Farringdon,519.0277339728569
+Stratford → Whitechapel,519.2063862034929
+Farringdon → Liverpool Street LU,523.8584803826358
+Whitechapel → Liverpool Street LU,526.8654071844621
+Whitechapel → Stratford,526.8687182261449
+Whitechapel → Canary Wharf EL,529.0711925507114
+Canary Wharf EL → Whitechapel,531.3513257704025

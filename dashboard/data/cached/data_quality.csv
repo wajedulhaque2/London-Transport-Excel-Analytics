@@ -1,0 +1,11 @@
+check,result,status
+Journey Rows,2777,PASS
+Earliest Journey Date,2019-01-01 00:00:00,INFO
+Latest Journey Date,2026-08-08 00:00:00,INFO
+Footfall Rows,1160147,PASS
+Distinct Stations,438,PASS
+Blank Station Rows,0,PASS
+Negative Footfall Rows,0,PASS
+Non-Standard Performance Rows,50,WARN
+NUMBAT Gate Rows,45216,PASS
+NUMBAT Platform Rows,223872,PASS
