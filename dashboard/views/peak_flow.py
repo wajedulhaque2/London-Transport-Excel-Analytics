@@ -24,6 +24,7 @@ def _link_metrics(frame: pd.DataFrame, line: str, time_band: str) -> pd.DataFram
     values["value"] = selected[columns].sum(axis=1, min_count=1)
     pivot = values.pivot_table(index=keys, columns="metric_type", values="value", aggfunc="sum").reset_index()
     pivot = pivot.rename(columns={"Passenger load": "passenger_load", "Scheduled trains": "scheduled_trains"})
+    pivot["link_label"] = pivot["from_station"] + " → " + pivot["to_station"]
     pivot["passengers_per_scheduled_train"] = pivot["passenger_load"] / pivot["scheduled_trains"].replace(0, float("nan"))
     return pivot
 
@@ -73,9 +74,15 @@ def render(data: dict[str, object]) -> None:
 
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(horizontal_bar(links.nlargest(15, "passengers_per_scheduled_train"), "passengers_per_scheduled_train", "link", "Highest demand per scheduled train", color=RED, height=500), width="stretch", config={"displayModeBar": False})
+        intensity_fig = horizontal_bar(links.nlargest(15, "passengers_per_scheduled_train"), "passengers_per_scheduled_train", "link_label", "Highest demand per scheduled train", color=RED, height=500)
+        intensity_fig.update_xaxes(title_text="Passengers per scheduled train")
+        intensity_fig.update_yaxes(title_text=None)
+        st.plotly_chart(intensity_fig, width="stretch", config={"displayModeBar": False})
     with right:
-        st.plotly_chart(horizontal_bar(links.nlargest(15, "passenger_load"), "passenger_load", "link", "Busiest inter-station links", color=BLUE, height=500), width="stretch", config={"displayModeBar": False})
+        loads_fig = horizontal_bar(links.nlargest(15, "passenger_load"), "passenger_load", "link_label", "Busiest inter-station links", color=BLUE, height=500)
+        loads_fig.update_xaxes(title_text="Passenger load")
+        loads_fig.update_yaxes(title_text=None)
+        st.plotly_chart(loads_fig, width="stretch", config={"displayModeBar": False})
 
     st.warning("Passengers per scheduled train measures demand intensity. It is not train occupancy, crowding, or capacity utilisation.")
     with st.expander("View filtered link data"):

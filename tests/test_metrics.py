@@ -10,6 +10,8 @@ import pandas as pd
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "dashboard"))
 
 from data_loader import load_snapshot  # noqa: E402
+from views.executive import _link_intensity  # noqa: E402
+from views.peak_flow import _link_metrics  # noqa: E402
 from metrics import (  # noqa: E402
     columns_for_time_band,
     network_summary,
@@ -67,6 +69,13 @@ class MetricsTest(unittest.TestCase):
 
     def test_safe_divide_preserves_missing_denominator(self) -> None:
         self.assertTrue(pd.isna(safe_divide(10, 0)))
+
+    def test_numbat_link_labels_are_reader_friendly(self) -> None:
+        executive_links = _link_intensity(self.data["numbat_links"])
+        peak_links = _link_metrics(self.data["numbat_links"], "All lines", "All day")
+        for links in (executive_links, peak_links):
+            self.assertTrue(links["link_label"].str.contains(" → ", regex=False).all())
+            self.assertFalse(links["link_label"].str.contains("@", regex=False).any())
 
 
 if __name__ == "__main__":
