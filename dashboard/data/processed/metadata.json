@@ -1,0 +1,46 @@
+{
+  "journey_data_from": "2019-01-01",
+  "journey_data_through": "2026-08-08",
+  "station_data_from": "2019-01-01",
+  "station_data_through": "2026-07-04",
+  "service_financial_years": [
+    "2016-17",
+    "2017-18",
+    "2018-19",
+    "2019-20",
+    "2020-21",
+    "2021-22",
+    "2022-23",
+    "2023-24",
+    "2024-25",
+    "2025-26",
+    "2026-27"
+  ],
+  "numbat_context": "NUMBAT 2024 TWT typical autumn Tuesday/Wednesday/Thursday profile",
+  "source_files": [
+    "Journeys_2019.csv",
+    "Journeys_2020.csv",
+    "Journeys_2021.csv",
+    "Journeys_2022.csv",
+    "Journeys_2023.csv",
+    "Journeys_2024.csv",
+    "Journeys_2025_2026 .csv",
+    "StationFootfall_2019.csv",
+    "StationFootfall_2020.csv",
+    "StationFootfall_2021.csv",
+    "StationFootfall_2022.csv",
+    "StationFootfall_2023.csv",
+    "StationFootfall_2024.csv",
+    "stationfootfall-2025-2026.csv",
+    "kilometres-operated.csv",
+    "kilometres-operated-guidance-notes.pdf",
+    "NBT24TWT_outputs.xlsx",
+    "PTSP Oasis for NUMBAT definitions.xlsx"
+  ],
+  "known_limitations": [
+    "Journey and station-footfall sources have different latest dates.",
+    "Kilometres operated 2024-25 periods 6 and 8 are partial; period 7 is unavailable after the TfL cyber incident.",
+    "NUMBAT is a typical-day model, not an annual observed total.",
+    "Passengers per scheduled train is demand intensity, not crowding or capacity utilisation."
+  ]
+}

@@ -1,88 +1,82 @@
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
 from chart_utils import BLUE, RED, horizontal_bar, line_chart
-from metrics import compact_number, percent
+from metrics import TIME_BANDS, columns_for_time_band, compact_number, numbat_profile
+
+
+def _filter(frame, station: str, line: str):
+    selected = frame
+    if station != "All stations" and "station" in selected:
+        selected = selected.loc[selected["station"] == station]
+    if line != "All lines" and "line" in selected:
+        selected = selected.loc[selected["line"] == line]
+    return selected
+
+
+def _link_metrics(frame: pd.DataFrame, line: str, time_band: str) -> pd.DataFrame:
+    selected = frame if line == "All lines" else frame.loc[frame["line"] == line]
+    columns = columns_for_time_band(selected, time_band)
+    keys = ["link", "line", "direction", "from_station", "to_station"]
+    values = selected[keys + ["metric_type"]].copy()
+    values["value"] = selected[columns].sum(axis=1, min_count=1)
+    pivot = values.pivot_table(index=keys, columns="metric_type", values="value", aggfunc="sum").reset_index()
+    pivot = pivot.rename(columns={"Passenger load": "passenger_load", "Scheduled trains": "scheduled_trains"})
+    pivot["passengers_per_scheduled_train"] = pivot["passenger_load"] / pivot["scheduled_trains"].replace(0, float("nan"))
+    return pivot
 
 
 def render(data: dict[str, object]) -> None:
-    metadata = data["metadata"]
-    gate = data["numbat_gate_evening"]
-    platform = data["numbat_platform_evening"]
-    intensity = data["numbat_intensity_evening"]
-    loads = data["numbat_link_load_evening"]
+    station_source = data["numbat_station"]
+    platform_source = data["numbat_platform"]
+    link_source = data["numbat_links"]
+    time_band = st.sidebar.selectbox("Time band", list(TIME_BANDS), key="numbat_time")
+    station_options = ["All stations"] + sorted(station_source["station"].dropna().unique().tolist())
+    station = st.sidebar.selectbox("Station", station_options, key="numbat_station")
+    line_scope = platform_source if station == "All stations" else platform_source.loc[platform_source["station"] == station]
+    line_options = ["All lines"] + sorted(line_scope["line"].dropna().unique().tolist())
+    line = st.sidebar.selectbox("NUMBAT line", line_options, key="numbat_line")
 
-    st.sidebar.selectbox("Time band", ["Evening (19:00–22:00)"], disabled=True, key="numbat_time")
-    st.sidebar.selectbox("Station", ["All stations in cached output"], disabled=True, key="numbat_station")
-    st.sidebar.selectbox("NUMBAT line", ["All lines in cached output"], disabled=True, key="numbat_line")
+    station_data = _filter(station_source, station, line)
+    platform_data = _filter(platform_source, station, line)
+    gate_profile = numbat_profile(station_data, time_band)
+    platform_profile = numbat_profile(platform_data, time_band)
+    links = _link_metrics(link_source, line, time_band)
+    gate_totals = station_data.groupby("flow_type")[columns_for_time_band(station_data, time_band)].sum().sum(axis=1)
+    platform_totals = platform_data.groupby("flow_type")[columns_for_time_band(platform_data, time_band)].sum().sum(axis=1)
 
     st.title("Peak flow analysis")
-    st.caption("NUMBAT 2024 TWT typical-day station, platform and link flows")
+    st.caption("NUMBAT 2024 TWT typical-day station, platform, and link demand")
     st.markdown(
-        '<div class="scope-note">Quarter-hour ordering follows the NUMBAT traffic day. '
-        'This cached slice covers 19:00–22:00; it is not an annual daily total.</div>',
+        f'<div class="scope-note"><b>{time_band}</b> · <b>{station}</b> · <b>{line}</b>. '
+        'Quarter-hour ordering follows the NUMBAT traffic day from 05:00 to 05:00.</div>',
         unsafe_allow_html=True,
     )
+    st.caption("The station filter applies to gate and platform flows. The line filter applies to platform and link flows because gate counts are not line-coded.")
 
-    entries = gate["entries"].sum()
-    exits = gate["exits"].sum()
-    boarders = platform["boarders"].sum()
-    alighters = platform["alighters"].sum()
     cols = st.columns(5)
-    cols[0].metric("Evening gate footfall", compact_number(entries + exits))
+    entries = float(gate_totals.get("Entries", 0))
+    exits = float(gate_totals.get("Exits", 0))
+    cols[0].metric("Gate footfall", compact_number(entries + exits))
     cols[1].metric("Entries", compact_number(entries))
     cols[2].metric("Exits", compact_number(exits))
-    cols[3].metric("Boarders", compact_number(boarders))
-    cols[4].metric("Alighters", compact_number(alighters))
+    cols[3].metric("Boarders", compact_number(platform_totals.get("Boarders", 0)))
+    cols[4].metric("Alighters", compact_number(platform_totals.get("Alighters", 0)))
 
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(
-            line_chart(
-                gate,
-                "quarter_hour",
-                {"entries": "Entries", "exits": "Exits"},
-                "15-minute station entry and exit profile",
-            ),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
+        st.plotly_chart(line_chart(gate_profile, "quarter_hour", {"Entries": "Entries", "Exits": "Exits"}, "15-minute station entry and exit profile"), width="stretch", config={"displayModeBar": False})
     with right:
-        st.plotly_chart(
-            line_chart(
-                platform,
-                "quarter_hour",
-                {"boarders": "Boarders", "alighters": "Alighters"},
-                "Platform boarders and alighters",
-            ),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
+        st.plotly_chart(line_chart(platform_profile, "quarter_hour", {"Boarders": "Boarders", "Alighters": "Alighters"}, "Platform boarders and alighters"), width="stretch", config={"displayModeBar": False})
 
     left, right = st.columns(2)
     with left:
-        st.plotly_chart(
-            horizontal_bar(
-                intensity,
-                "passengers_per_scheduled_train",
-                "link",
-                "Highest demand per scheduled train",
-                color=RED,
-            ),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
+        st.plotly_chart(horizontal_bar(links.nlargest(15, "passengers_per_scheduled_train"), "passengers_per_scheduled_train", "link", "Highest demand per scheduled train", color=RED, height=500), width="stretch", config={"displayModeBar": False})
     with right:
-        st.plotly_chart(
-            horizontal_bar(loads, "passenger_load", "link", "Busiest inter-station links", color=BLUE),
-            width="stretch",
-            config={"displayModeBar": False},
-        )
+        st.plotly_chart(horizontal_bar(links.nlargest(15, "passenger_load"), "passenger_load", "link", "Busiest inter-station links", color=BLUE, height=500), width="stretch", config={"displayModeBar": False})
 
-    st.markdown(
-        '<div class="warning-note"><b>Interpretation:</b> Passengers per Scheduled Train is a '
-        'demand-intensity metric. It is not train occupancy, crowding percentage or capacity utilisation.</div>',
-        unsafe_allow_html=True,
-    )
-    st.caption(metadata["numbat_context"])
+    st.warning("Passengers per scheduled train measures demand intensity. It is not train occupancy, crowding, or capacity utilisation.")
+    with st.expander("View filtered link data"):
+        st.dataframe(links[["line", "direction", "from_station", "to_station", "passenger_load", "scheduled_trains", "passengers_per_scheduled_train"]].sort_values("passenger_load", ascending=False), width="stretch", hide_index=True)

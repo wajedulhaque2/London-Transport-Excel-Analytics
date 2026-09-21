@@ -117,7 +117,7 @@ See [Workbook Architecture](docs/WORKBOOK_ARCHITECTURE.md) for the model map.
 
 ## Live web dashboard
 
-The repository also includes a Streamlit + Plotly web version under [`dashboard/`](dashboard/). It preserves the workbook's analytical definitions, keeps calendar-year demand separate from TfL financial-year service performance, and surfaces cached-data limitations instead of manufacturing unavailable records.
+The repository also includes a Streamlit + Plotly web version under [`dashboard/`](dashboard/). It uses compact source-backed datasets generated from the full TfL source pack, preserves the workbook's analytical definitions, and keeps calendar-year demand separate from TfL financial-year service performance.
 
 Run it locally from the repository root:
 
@@ -126,7 +126,7 @@ pip install -r requirements.txt
 streamlit run dashboard/app.py
 ```
 
-See [`dashboard/README.md`](dashboard/README.md) for architecture, snapshot refresh and Streamlit Community Cloud deployment instructions.
+See [`dashboard/README.md`](dashboard/README.md) for architecture, source refresh, and Streamlit Community Cloud deployment instructions.
 
 ## Files in this repository
 
