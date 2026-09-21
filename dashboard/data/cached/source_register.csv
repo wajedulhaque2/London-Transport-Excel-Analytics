@@ -1,0 +1,5 @@
+source_id,dataset,provider,file,coverage,refresh_frequency,purpose,status,notes
+SRC001,Network Journeys,Transport for London,Journeys_2019.csv … Journeys_2025_2026.csv,01 Jan 2019 – 08 Aug 2026,Updated periodically,Daily Bus and Tube demand trends,Connected,Folder-combined in Power Query; DayOFWeek standardised; TravelDate converted from YYYYMMDD.
+SRC002,Station Footfall,Transport for London,StationFootfall_2019.csv … stationfootfall-2025-2026.csv,01 Jan 2019 – 04 Jul 2026,Updated periodically,Station entry/exit demand,Connected,Station names trimmed; controlled aliases applied; missing station-day rows are not manufactured.
+SRC003,Kilometres Operated,Transport for London,kilometres-operated.csv,2016/17 – 2026/27 YTD,TfL reporting periods,Underground service delivery,Connected,2024/25 P6 and P8 are partial and P7 is unavailable following the TfL cyber incident.
+SRC004,NUMBAT 2024 TWT,Transport for London,NBT24TWT_outputs.xlsx,2024 typical TWT day,Annual typical-day model,Typical-day peak and link-flow analysis,Connected,"96 quarter-hour periods; treated as typical-day demand, not annual daily totals."

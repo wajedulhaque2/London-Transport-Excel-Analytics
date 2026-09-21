@@ -115,6 +115,19 @@ See [Workbook Architecture](docs/WORKBOOK_ARCHITECTURE.md) for the model map.
 
 **Portfolio build refresh:** 17 Aug 2026 15:38. Source-specific freshness is shown separately because the source families update on different schedules.
 
+## Live web dashboard
+
+The repository also includes a Streamlit + Plotly web version under [`dashboard/`](dashboard/). It preserves the workbook's analytical definitions, keeps calendar-year demand separate from TfL financial-year service performance, and surfaces cached-data limitations instead of manufacturing unavailable records.
+
+Run it locally from the repository root:
+
+```bash
+pip install -r requirements.txt
+streamlit run dashboard/app.py
+```
+
+See [`dashboard/README.md`](dashboard/README.md) for architecture, snapshot refresh and Streamlit Community Cloud deployment instructions.
+
 ## Files in this repository
 
 - [`workbook/London_Transport_Demand_Analytics_Portfolio.xlsx`](workbook/London_Transport_Demand_Analytics_Portfolio.xlsx) — clean cached workbook for reviewers
@@ -123,6 +136,7 @@ See [Workbook Architecture](docs/WORKBOOK_ARCHITECTURE.md) for the model map.
 - [`docs/WORKBOOK_ARCHITECTURE.md`](docs/WORKBOOK_ARCHITECTURE.md) — workbook and model structure
 - [`docs/DATA_SOURCES.md`](docs/DATA_SOURCES.md) — source register and coverage notes
 - [`assets/`](assets/) — screenshots of the finished workbook dashboards
+- [`dashboard/`](dashboard/) — Streamlit + Plotly live dashboard and cached web snapshots
 
 ## Data quality and limitations
 

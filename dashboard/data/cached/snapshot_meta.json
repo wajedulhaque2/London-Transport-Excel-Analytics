@@ -1,0 +1,65 @@
+{
+  "snapshot_version": 1,
+  "source_workbook": "London_Transport_Demand_Analytics_Portfolio.xlsx",
+  "portfolio_build_refresh": "2026-08-17T15:38:00",
+  "snapshot_extracted_at": "2026-09-21T13:22:59.689320+00:00",
+  "journey_data_through": "2026-08-08",
+  "station_data_through": "2026-07-04",
+  "station_detail_context": {
+    "station": "Langdon Park",
+    "calendar_year": 2026,
+    "day_type": "Weekday"
+  },
+  "service_detail_context": "Cached workbook selection across 2016/17–2023/24",
+  "executive_service_context": "2025/26 cached executive selection",
+  "numbat_context": "2024 TWT typical day; cached Evening band (19:00–22:00)",
+  "kpis": {
+    "station_detail": {
+      "Average Daily Footfall": 5370.795454545455,
+      "Average Daily Entries": 2871.840909090909,
+      "Average Daily Exits": 2498.9545454545455,
+      "Station Rank": 325,
+      "Directionality Index": 0.06942851702177179,
+      "Weekday Weekend Ratio": 1.4497107684244497,
+      "Demand vs 2019 %": 0.983093035999652
+    },
+    "network_all_periods": {
+      "Average Daily Tube Journeys": 2740715.880446525,
+      "Average Daily Bus Journeys": 4224126.39539071,
+      "Tube Demand vs 2019 %": 0.7255040768488099,
+      "Bus Demand vs 2019 %": 0.7966001945341856,
+      "Latest Journey Date": "2026-08-08T00:00:00"
+    },
+    "service_detail": {
+      "Service Delivery %": 0.9191990878140844,
+      "Peak Delivery %": 0.9163436669475388,
+      "Off-Peak Delivery %": 0.9202141501530674,
+      "Undelivered KM": 71078689,
+      "Line Service Rank": 6
+    },
+    "executive": {
+      "Average Daily Tube Journeys": 3144559.090909091,
+      "Average Daily Footfall": 7694359.313513514,
+      "Tube Demand vs 2019 %": 0.8324067651897002,
+      "Service Delivery %": 0.901629979317255,
+      "Peak Share %": 0.5114522126099343
+    },
+    "numbat_cached": {
+      "NUMBAT Gate Footfall": 1294342.2505200466,
+      "AM Peak Gate Footfall": 2498628.213162693,
+      "PM Peak Gate Footfall": 2788339.7031210735,
+      "Peak Share %": 4.084675374043878,
+      "NUMBAT Boarders": 867230.4156438049,
+      "NUMBAT Alighters": 930745.8243813467
+    }
+  },
+  "limitations": [
+    "Missing station-day rows are not converted to zero.",
+    "Station Footfall and Network Journey source dates differ.",
+    "The cached workbook exposes pivot outputs, not the underlying million-row model tables.",
+    "Station detail is available for the cached Langdon Park / 2026 / Weekday context only.",
+    "Service performance uses the workbook's cached financial-year selection.",
+    "NUMBAT is a typical 2024 Tue/Wed/Thu profile, not annual daily demand.",
+    "Passengers per Scheduled Train is demand intensity, not occupancy or capacity utilisation."
+  ]
+}
