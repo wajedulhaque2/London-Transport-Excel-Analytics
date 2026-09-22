@@ -17,8 +17,8 @@ def style_figure(fig: go.Figure, height: int = 390) -> go.Figure:
         margin=dict(l=18, r=18, t=58, b=18),
         paper_bgcolor="#FFFFFF",
         plot_bgcolor="#FFFFFF",
-        font=dict(family="Arial, sans-serif", color="#1F2937"),
-        title_font=dict(size=17, color="#111827"),
+        font=dict(family="Trebuchet MS, Arial, sans-serif", color="#14233D"),
+        title_font=dict(size=18, color="#14233D"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
         hoverlabel=dict(bgcolor="#FFFFFF", font_size=13),
     )

@@ -54,20 +54,13 @@ def render(data: dict[str, object]) -> None:
     second[1].metric("Leading station", stations.iloc[0]["station"])
     second[2].metric("Service delivery", percent(service_kpis["service_delivery"]))
 
-    left, right = st.columns([1.35, 1])
-    with left:
-        st.plotly_chart(line_chart(monthly, "month", {"tube_avg_daily": "Tube", "bus_avg_daily": "Bus"}, f"Monthly average daily demand — {selected_year}"), width="stretch", config={"displayModeBar": False})
-    with right:
-        st.plotly_chart(horizontal_bar(stations.head(10), "average_daily_footfall", "station", f"Leading stations — {selected_year}", color=BLUE), width="stretch", config={"displayModeBar": False})
-
-    left, right = st.columns(2)
-    with left:
-        st.plotly_chart(horizontal_bar(service_lines, "service_delivery", "line", f"Underground service delivery — {service_year}", color=BLUE, percent_axis=True), width="stretch", config={"displayModeBar": False})
-    with right:
-        fig = go.Figure(go.Bar(x=intensity["passengers_per_scheduled_train"], y=intensity["link_label"], orientation="h", marker_color=RED, hovertemplate="%{y}<br>%{x:,.1f} passengers per scheduled train<extra></extra>"))
-        fig.update_layout(title="Highest all-day demand per scheduled train", xaxis_title="Passengers per scheduled train", yaxis_title=None)
-        st.plotly_chart(style_figure(fig), width="stretch", config={"displayModeBar": False})
-        st.caption("Demand intensity only; train capacity is not part of this measure.")
+    st.plotly_chart(line_chart(monthly, "month", {"tube_avg_daily": "Tube", "bus_avg_daily": "Bus"}, f"Monthly average daily demand — {selected_year}", height=370), width="stretch", config={"displayModeBar": False})
+    st.plotly_chart(horizontal_bar(stations.head(10), "average_daily_footfall", "station", f"Leading stations — {selected_year}", color=BLUE, height=440), width="stretch", config={"displayModeBar": False})
+    st.plotly_chart(horizontal_bar(service_lines, "service_delivery", "line", f"Underground service delivery — {service_year}", color=BLUE, percent_axis=True, height=440), width="stretch", config={"displayModeBar": False})
+    fig = go.Figure(go.Bar(x=intensity["passengers_per_scheduled_train"], y=intensity["link_label"], orientation="h", marker_color=RED, hovertemplate="%{y}<br>%{x:,.1f} passengers per scheduled train<extra></extra>"))
+    fig.update_layout(title="Highest all-day demand per scheduled train", xaxis_title="Passengers per scheduled train", yaxis_title=None)
+    st.plotly_chart(style_figure(fig, 440), width="stretch", config={"displayModeBar": False})
+    st.caption("Demand intensity only; train capacity is not part of this measure.")
 
     with st.expander("Data freshness and interpretation"):
         st.write(f"Journey data: {data['metadata']['journey_data_from']} to {data['metadata']['journey_data_through']}")

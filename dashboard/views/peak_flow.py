@@ -72,17 +72,15 @@ def render(data: dict[str, object]) -> None:
     with right:
         st.plotly_chart(line_chart(platform_profile, "quarter_hour", {"Boarders": "Boarders", "Alighters": "Alighters"}, "Platform boarders and alighters"), width="stretch", config={"displayModeBar": False})
 
-    left, right = st.columns(2)
-    with left:
-        intensity_fig = horizontal_bar(links.nlargest(15, "passengers_per_scheduled_train"), "passengers_per_scheduled_train", "link_label", "Highest demand per scheduled train", color=RED, height=500)
-        intensity_fig.update_xaxes(title_text="Passengers per scheduled train")
-        intensity_fig.update_yaxes(title_text=None)
-        st.plotly_chart(intensity_fig, width="stretch", config={"displayModeBar": False})
-    with right:
-        loads_fig = horizontal_bar(links.nlargest(15, "passenger_load"), "passenger_load", "link_label", "Busiest inter-station links", color=BLUE, height=500)
-        loads_fig.update_xaxes(title_text="Passenger load")
-        loads_fig.update_yaxes(title_text=None)
-        st.plotly_chart(loads_fig, width="stretch", config={"displayModeBar": False})
+    intensity_fig = horizontal_bar(links.nlargest(15, "passengers_per_scheduled_train"), "passengers_per_scheduled_train", "link_label", "Highest demand per scheduled train", color=RED, height=540)
+    intensity_fig.update_xaxes(title_text="Passengers per scheduled train")
+    intensity_fig.update_yaxes(title_text=None)
+    st.plotly_chart(intensity_fig, width="stretch", config={"displayModeBar": False})
+
+    loads_fig = horizontal_bar(links.nlargest(15, "passenger_load"), "passenger_load", "link_label", "Busiest inter-station links", color=BLUE, height=540)
+    loads_fig.update_xaxes(title_text="Passenger load")
+    loads_fig.update_yaxes(title_text=None)
+    st.plotly_chart(loads_fig, width="stretch", config={"displayModeBar": False})
 
     st.warning("Passengers per scheduled train measures demand intensity. It is not train occupancy, crowding, or capacity utilisation.")
     with st.expander("View filtered link data"):
