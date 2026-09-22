@@ -44,3 +44,24 @@ APP_CSS = """
     footer { visibility: hidden; }
 </style>
 """
+
+# Network signage is deliberately sharper and darker than the other project UIs.
+APP_CSS += """
+<style>
+.stApp { background: #F1F4F8; border-top: 7px solid #0019A8; font-family: 'Trebuchet MS', Arial, sans-serif; }
+[data-testid="stHeader"] { background: #F1F4F8; }
+[data-testid="stSidebar"] { background: #14233D; border-right: 4px solid #E32017; }
+[data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2,
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] label,
+[data-testid="stSidebar"] [role="radiogroup"] * { color: #F8FAFC !important; }
+[data-testid="stSidebar"] h1, h1, h2, h3 { font-family: 'Arial Narrow', 'Trebuchet MS', Arial, sans-serif; }
+[data-testid="stSidebar"] h1, h1 { text-transform: uppercase; letter-spacing: .04em; font-weight: 800 !important; }
+[data-testid="stSidebar"] hr { border-color: #52627D; }
+[data-testid="stSidebar"] [data-baseweb="select"] > div { background: #243757; border-color: #52627D; }
+[data-testid="stSidebar"] [data-baseweb="select"] * { color: #FFFFFF; }
+div[data-testid="stMetric"] { border-top: 5px solid #0019A8; border-radius: 2px; box-shadow: 0 2px 0 #D6E0E8; }
+div[data-testid="stMetricValue"] { font-family: 'Arial Narrow', 'Trebuchet MS', Arial, sans-serif; }
+[data-testid="stPlotlyChart"], [data-testid="stDataFrame"] { border-radius: 2px; border-color: #D6E0E8; padding: .45rem; }
+.scope-note, .warning-note, .leader { border-radius: 2px; }
+</style>
+"""
